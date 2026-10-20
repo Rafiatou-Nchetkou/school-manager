@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  /* Couleurs primaires (Institutionnel) */
+  --color-primary-50: #f0f4f8;
+  --color-primary-100: #d9e2ec;
+  --color-primary-500: #334e68;
+  --color-primary-600: #243b53;
+  --color-primary-900: #102a43;
+
+  /* Couleurs d'état (Retour utilisateur) */
+  --color-success-50: #ecfdf5;
+  --color-success-500: #059669;
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #d97706;
+  --color-danger-50: #fef2f2;
+  --color-danger-500: #dc2626;
+  
+  /* Fond de l'application */
+  --color-surface: #f8fafc;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface);
+    color: #1f2937;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Configuration de l'impression */
+@media print {
+  @page {
+    size: landscape; /* Format paysage obligatoire pour ce document */
+    margin: 1cm;
+  }
+  
+  body {
+    background-color: white !important;
+  }
+
+  /* Cache la navigation lors de l'impression */
+  aside, nav, header {
+    display: none !important;
+  }
+}
