@@ -17,20 +17,23 @@ const inputSchema = z.object({
   path: ['teacherId'],
 });
 
-const [email, role, displayName, teacherId] = process.argv.slice(2);
-const parsed = inputSchema.safeParse({
-  email,
-  role,
-  displayName,
-  teacherId: teacherId || undefined,
-  password: process.env.SCHOOL_USER_PASSWORD,
-});
+async function main() {
+  const [email, role, displayName, teacherId] = process.argv.slice(2);
+  const parsed = inputSchema.safeParse({
+    email,
+    role,
+    displayName,
+    teacherId: teacherId || undefined,
+    password: process.env.SCHOOL_USER_PASSWORD,
+  });
 
-if (!parsed.success) {
-  console.error('Usage: SCHOOL_USER_PASSWORD=<mot-de-passe-long> npm run user:create -- <email> <director|teacher> <nom-affiché> [teacherId]');
-  console.error(parsed.error.issues.map(issue => issue.message).join('\n'));
-  process.exitCode = 1;
-} else {
+  if (!parsed.success) {
+    console.error('Usage: SCHOOL_USER_PASSWORD=<mot-de-passe-long> npm run user:create -- <email> <director|teacher> <nom-affiché> [teacherId]');
+    console.error(parsed.error.issues.map(issue => issue.message).join('\n'));
+    process.exitCode = 1;
+    return;
+  }
+
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error('Configurez DATABASE_URL.');
   const pool = new Pool({ connectionString: databaseUrl, ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: true } : undefined });
@@ -46,3 +49,8 @@ if (!parsed.success) {
     await pool.end();
   }
 }
+
+void main().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});
