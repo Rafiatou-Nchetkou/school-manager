@@ -36,7 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user && (token.role === 'director' || token.role === 'teacher')) {
         session.user.id = token.sub ?? '';
         session.user.role = token.role;
-        session.user.teacherId = token.teacherId;
+        session.user.teacherId = token.teacherId ?? null;
       }
       return session;
     },
