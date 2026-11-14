@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { isDatabaseConfigured } from '@/lib/database';
 import { createEvaluationPeriod, recordStudentTransfer, reEnrollStudent } from '@/lib/studentLifecycle';
+import { requireDirector } from '@/lib/authorization';
 
 const transferSchema = z.object({
   studentId: z.string().min(1),
@@ -43,6 +44,7 @@ function requireDatabase() {
 }
 
 export async function reEnrollStudentAction(rawInput: unknown) {
+  await requireDirector();
   requireDatabase();
   const result = await reEnrollStudent(reEnrollmentSchema.parse(rawInput));
   revalidatePath('/eleves');
@@ -52,6 +54,7 @@ export async function reEnrollStudentAction(rawInput: unknown) {
 }
 
 export async function recordStudentTransferAction(rawInput: unknown) {
+  await requireDirector();
   requireDatabase();
   const result = await recordStudentTransfer(transferSchema.parse(rawInput));
   revalidatePath('/eleves');
@@ -60,6 +63,7 @@ export async function recordStudentTransferAction(rawInput: unknown) {
 }
 
 export async function saveEvaluationPeriodAction(rawInput: unknown) {
+  await requireDirector();
   requireDatabase();
   const result = await createEvaluationPeriod(evaluationPeriodSchema.parse(rawInput));
   revalidatePath('/eleves');

@@ -4,7 +4,7 @@ import { Home, Users, Wallet, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export function Sidebar() {
+export function Sidebar({ role }: { role: 'director' | 'teacher' }) {
   const pathname = usePathname();
   const isActive = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
 
@@ -21,6 +21,11 @@ export function Sidebar() {
       </div>
       
       <nav className="flex-1 p-4 space-y-2">
+        {role === 'teacher' ? (
+          <Link href="/classes" aria-current={isActive('/classes') ? 'page' : undefined} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive('/classes') ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`}>
+            <BookOpen size={20} /> Ma classe
+          </Link>
+        ) : <>
         <Link href="/" aria-current={isActive('/') ? 'page' : undefined} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive('/') ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`}>
           <Home size={20} /> Tableau de bord
         </Link>
@@ -36,6 +41,7 @@ export function Sidebar() {
         <Link href="/enseignants" aria-current={isActive('/enseignants') ? 'page' : undefined} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive('/enseignants') ? 'bg-primary-50 text-primary-600 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
           <Users size={20} /> Enseignants
         </Link>
+        </>}
       </nav>
     </aside>
   );

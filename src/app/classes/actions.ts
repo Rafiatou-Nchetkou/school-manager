@@ -5,8 +5,10 @@ import { revalidatePath } from 'next/cache';
 import { isDatabaseConfigured } from '@/lib/database';
 import { assignTeacher } from '@/lib/schoolDirectory';
 import { z } from 'zod';
+import { requireDirector } from '@/lib/authorization';
 
 export async function assignClassTeacherAction(classId: string, teacherId: string) {
+  await requireDirector();
   const classroomId = z.string().min(1).max(100).parse(classId);
   const selectedTeacherId = z.union([z.literal('none'), z.string().min(1).max(100)]).parse(teacherId);
   // Si l'ID est "none", on met null (retirer l'enseignant)

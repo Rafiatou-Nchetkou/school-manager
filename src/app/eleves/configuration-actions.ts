@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { isDatabaseConfigured } from '@/lib/database';
 import { createEvaluationPeriod, saveGradeLevel } from '@/lib/studentLifecycle';
+import { requireDirector } from '@/lib/authorization';
 
 const gradeLevelSchema = z.object({
   name: z.string().trim().min(1).max(80),
@@ -26,6 +27,7 @@ function requireDatabase() {
 }
 
 export async function saveGradeLevelAction(rawInput: unknown) {
+  await requireDirector();
   requireDatabase();
   const result = await saveGradeLevel(gradeLevelSchema.parse(rawInput));
   revalidatePath('/eleves');
@@ -34,6 +36,7 @@ export async function saveGradeLevelAction(rawInput: unknown) {
 }
 
 export async function saveEvaluationPeriodAction(rawInput: unknown) {
+  await requireDirector();
   requireDatabase();
   const result = await createEvaluationPeriod(evaluationPeriodSchema.parse(rawInput));
   revalidatePath('/eleves');

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { isDatabaseConfigured } from '@/lib/database';
 import { createTeacher } from '@/lib/schoolDirectory';
 import { schoolService } from '@/services/schoolService';
+import { requireDirector } from '@/lib/authorization';
 
 const teacherSchema = z.object({
   nom: z.string().trim().min(1).max(120),
@@ -15,6 +16,7 @@ const teacherSchema = z.object({
 });
 
 export async function createTeacherAction(rawInput: unknown) {
+  await requireDirector();
   const teacher = teacherSchema.parse(rawInput);
   const created = isDatabaseConfigured
     ? await createTeacher(teacher)

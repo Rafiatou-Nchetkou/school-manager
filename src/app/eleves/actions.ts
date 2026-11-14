@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { isDatabaseConfigured } from '@/lib/database';
 import { enrollStudent, reEnrollStudent, studentEnrollmentSchema } from '@/lib/studentLifecycle';
 import { schoolService } from '@/services/schoolService';
+import { requireDirector } from '@/lib/authorization';
 
 const reEnrollmentSchema = z.object({
   studentId: z.string().min(1),
@@ -20,6 +21,7 @@ const reEnrollmentSchema = z.object({
 });
 
 export async function createStudentEnrollmentAction(rawInput: unknown) {
+  await requireDirector();
   const input = studentEnrollmentSchema.parse(rawInput);
 
   if (isDatabaseConfigured) {
@@ -52,6 +54,7 @@ export async function createStudentEnrollmentAction(rawInput: unknown) {
 }
 
 export async function reEnrollStudentAction(rawInput: unknown) {
+  await requireDirector();
   if (!isDatabaseConfigured) {
     throw new Error('La réinscription annuelle nécessite une base PostgreSQL configurée.');
   }

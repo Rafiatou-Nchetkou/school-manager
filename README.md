@@ -55,7 +55,25 @@ src/
 
 Les données actuelles sont des exemples définis dans `src/services/schoolService.ts`. Il n'y a pas encore de base de données configurée : les ajouts et affectations ne constituent pas une persistance de production.
 
-Aucun fichier `.env` n'est requis pour lancer la version actuelle. Les fichiers d'environnement sont ignorés par Git ; ne publiez jamais de secrets dans le dépôt.
+Un fichier `.env.local` est nécessaire pour connecter PostgreSQL et l'authentification. Les fichiers d'environnement sont ignorés par Git ; ne publiez jamais de secrets dans le dépôt. Sans base ni compte configurés, l'application n'est pas accessible en mode démo.
+
+### Comptes et accès
+
+L'accès à l'application nécessite PostgreSQL, `DATABASE_URL` et `AUTH_SECRET`. Après avoir configuré la base, appliquez les migrations avec `npm run db:migrate`, puis créez le compte initial de direction :
+
+```bash
+npx auth secret
+# Copier la valeur générée dans AUTH_SECRET, puis définir le mot de passe dans l'environnement du terminal :
+npm run user:create -- direction@example.org director "Direction"
+```
+
+`SCHOOL_USER_PASSWORD` doit être défini dans l'environnement avant la commande et contenir au moins 12 caractères. Pour un compte enseignant, fournir aussi l'identifiant de son profil enseignant comme dernier argument :
+
+```bash
+npm run user:create -- enseignant@example.org teacher "Nom enseignant" <teacherId>
+```
+
+Les comptes enseignants ne voient que leur classe titulaire ; les autres écrans et toutes les actions administratives sont réservés à la Directrice. Le compte initial et les comptes suivants sont créés par cette commande d'administration ; aucune inscription publique n'est disponible.
 
 ## Déploiement
 

@@ -9,7 +9,7 @@ if (!connectionString) {
 
 const pool = new Pool({ connectionString, ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: true } : undefined });
 const client = await pool.connect();
-const migrations = ['001_student_lifecycle', '002_teachers'];
+const migrations = ['001_student_lifecycle', '002_teachers', '003_auth_users'];
 
 try {
   await client.query('SELECT pg_advisory_lock($1)', [541_802_202]);

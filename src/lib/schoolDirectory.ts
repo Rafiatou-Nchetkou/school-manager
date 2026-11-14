@@ -36,7 +36,7 @@ export async function createTeacher(input: Omit<Teacher, 'id'>) {
   return result.rows[0] as Teacher;
 }
 
-export async function listClassrooms(schoolYear: string) {
+export async function listClassrooms(schoolYear: string, teacherId?: string) {
   const result = await getDatabasePool().query(
     `SELECT c.id, gl.name AS nom, sy.name AS "anneeScolaire", c.head_teacher_id AS "enseignantTitulaireId",
        t.id AS "teacherId", t.last_name AS "teacherNom", t.first_name AS "teacherPrenom",
@@ -46,8 +46,8 @@ export async function listClassrooms(schoolYear: string) {
      JOIN school_years sy ON sy.id = c.school_year_id
      LEFT JOIN teachers t ON t.id = c.head_teacher_id
      LEFT JOIN enrollments e ON e.classroom_id = c.id
-     WHERE sy.name = $1 AND gl.is_active = true
-     GROUP BY c.id, gl.name, sy.name, t.id ORDER BY gl.position, gl.label`, [schoolYear],
+     WHERE sy.name = $1 AND gl.is_active = true AND ($2::text IS NULL OR c.head_teacher_id = $2)
+     GROUP BY c.id, gl.name, sy.name, t.id ORDER BY gl.position, gl.label`, [schoolYear, teacherId ?? null],
   );
   return result.rows.map(row => ({
     id: row.id, nom: row.nom, anneeScolaire: row.anneeScolaire,
