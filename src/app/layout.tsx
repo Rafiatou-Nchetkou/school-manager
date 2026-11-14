@@ -5,6 +5,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { auth } from '@/auth';
 import { logoutAction } from '@/app/auth-actions';
 import { connection } from 'next/server';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'École Publique de Bikondo - Gestion',
@@ -26,6 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <main className="flex-1 pb-20 md:pb-0">
               <div className="flex items-center justify-end gap-3 border-b border-gray-200 bg-white px-6 py-3 text-sm">
                 <span className="text-gray-600">{session.user.name} · {session.user.role === 'director' ? 'Directrice' : 'Enseignant'}</span>
+                {session.user.role === 'director' && <Link className="font-medium text-primary-600 hover:underline" href="/comptes/nouveau">Créer un compte</Link>}
                 <form action={logoutAction}><button className="font-medium text-primary-600 hover:underline" type="submit">Déconnexion</button></form>
               </div>
               {children}

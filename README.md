@@ -73,7 +73,7 @@ npm run user:create -- direction@example.org director "Direction"
 npm run user:create -- enseignant@example.org teacher "Nom enseignant" <teacherId>
 ```
 
-Les comptes enseignants ne voient que leur classe titulaire ; les autres écrans et toutes les actions administratives sont réservés à la Directrice. Le compte initial et les comptes suivants sont créés par cette commande d'administration ; aucune inscription publique n'est disponible.
+Les comptes enseignants ne voient que leur classe titulaire ; les autres écrans et toutes les actions administratives sont réservés à la Directrice. Le premier compte Directrice est créé avec la commande d'administration. Une fois connectée, la Directrice peut créer les autres comptes depuis « Créer un compte » dans l'en-tête. Aucune inscription publique n'est disponible.
 
 ## Déploiement
 
