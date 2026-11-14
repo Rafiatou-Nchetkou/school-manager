@@ -1,7 +1,10 @@
 import { randomUUID } from 'node:crypto';
+import { loadEnvConfig } from '@next/env';
 import { Pool } from 'pg';
 import { z } from 'zod';
 import { hashPassword } from '@/lib/passwords';
+
+loadEnvConfig(process.cwd());
 
 const inputSchema = z.object({
   email: z.string().trim().email().max(254),

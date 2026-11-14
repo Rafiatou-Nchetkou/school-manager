@@ -59,7 +59,7 @@ Un fichier `.env.local` est nécessaire pour connecter PostgreSQL et l'authentif
 
 ### Comptes et accès
 
-L'accès à l'application nécessite PostgreSQL, `DATABASE_URL` et `AUTH_SECRET`. Après avoir configuré la base, appliquez les migrations avec `npm run db:migrate`, puis créez le compte initial de direction :
+L'accès à l'application nécessite PostgreSQL, `DATABASE_URL` et `AUTH_SECRET`. Placez `DATABASE_URL` dans `.env.local` ; les scripts CLI chargent ce fichier automatiquement. Après avoir configuré la base, appliquez les migrations avec `npm run db:migrate`, puis créez le compte initial de direction :
 
 ```bash
 npx auth secret

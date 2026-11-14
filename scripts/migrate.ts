@@ -1,6 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { loadEnvConfig } from '@next/env';
 import { Pool, type PoolClient } from 'pg';
+
+loadEnvConfig(process.cwd());
 
 async function main() {
   const connectionString = process.env.DATABASE_URL;
