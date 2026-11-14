@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Save, User } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { schoolService } from '@/services/schoolService';
+import { createTeacherAction } from '@/app/enseignants/actions';
 import { useState } from 'react';
 
 export default function NouvelEnseignantPage() {
@@ -28,7 +28,7 @@ export default function NouvelEnseignantPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await schoolService.addTeacher(formData);
+      await createTeacherAction(formData);
       router.push('/enseignants');
       router.refresh(); // Force le rechargement des données serveur
     } catch (error) {

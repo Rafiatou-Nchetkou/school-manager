@@ -18,7 +18,9 @@ export const MOCK_CLASSROOMS: Classroom[] = [
   { id: 'c1', nom: 'SIL', anneeScolaire: '2026-2027', enseignantTitulaireId: 'e1' },
   { id: 'c2', nom: 'CP', anneeScolaire: '2026-2027', enseignantTitulaireId: 'e2' },
   { id: 'c3', nom: 'CE1', anneeScolaire: '2026-2027', enseignantTitulaireId: null },
-  { id: 'c4', nom: 'CM2', anneeScolaire: '2026-2027', enseignantTitulaireId: 'e3' },
+  { id: 'c5', nom: 'CE2', anneeScolaire: '2026-2027', enseignantTitulaireId: null },
+  { id: 'c6', nom: 'CM1', anneeScolaire: '2026-2027', enseignantTitulaireId: null },
+  { id: 'c4', nom: 'CM2', anneeScolaire: '2026-2027', enseignantTitulaireId: 'e3' }
 ];
 
 export const schoolService = {
@@ -35,23 +37,28 @@ export const schoolService = {
   },
 
   getFilteredStudents: async ({
+    schoolYear = '2026-2027',
     gradeLevel,
     status,
+    incompleteOnly = false,
     search,
     page = 1,
     limit = 8
   }: {
+    schoolYear?: string;
     gradeLevel?: string;
     status?: string;
+    incompleteOnly?: boolean;
     search?: string;
     page?: number;
     limit?: number;
   }) => {
-    let result = MOCK_STUDENTS; // Ici, on fera un appel Supabase plus tard
+    let result = MOCK_STUDENTS.filter(student => student.anneeScolaire === schoolYear);
 
     // Filtrage
     if (gradeLevel && gradeLevel !== 'all') result = result.filter(student => student.classe === gradeLevel);
     if (status && status !== 'all') result = result.filter(student => student.statut === status);
+    if (incompleteOnly) result = result.filter(student => student.isIncomplete);
     if (search) {
       const s = search.toLowerCase();
       result = result.filter(student =>
@@ -67,6 +74,15 @@ export const schoolService = {
     const data = result.slice(start, start + limit);
 
     return { data, total, totalPages: Math.ceil(total / limit) };
+  },
+
+  getSchoolYears: async () => [{ id: 'demo-2026-2027', name: '2026-2027', is_active: true }],
+  hasPersistentStorage: (): boolean => Boolean(process.env.DATABASE_URL),
+
+  getGradeLevels: async () => ['SIL', 'CP', 'CE1', 'CE2', 'CM1', 'CM2'].map((name, position) => ({ id: name, name, label: name, position })),
+
+  saveGradeLevel: async (_input: { name: string; label: string; position?: number }) => {
+    throw new Error('La configuration des niveaux nécessite une base PostgreSQL.');
   },
 
   getClassrooms: async (): Promise<(Classroom & { teacher?: Teacher; studentCount: number })[]> => {

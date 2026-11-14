@@ -1,18 +1,17 @@
-'use client';
-
 import Link from 'next/link';
-import { startTransition, useEffect, useState } from 'react';
 import { schoolService } from '@/services/schoolService';
 import { Student } from '@/types';
+import { isDatabaseConfigured } from '@/lib/database';
+import { listSchoolYears, listStudentsForSchoolYear } from '@/lib/studentLifecycle';
 
 const formatMoney = (amount: number) => `${amount.toLocaleString('fr-FR')} FCFA`;
 
-export default function FinancesPage() {
-  const [eleves, setEleves] = useState<Student[]>([]);
-
-  useEffect(() => {
-    startTransition(() => setEleves(schoolService.getStudents()));
-  }, []);
+export default async function FinancesPage() {
+  const schoolYears = isDatabaseConfigured ? await listSchoolYears() : await schoolService.getSchoolYears();
+  const activeSchoolYear = schoolYears.find(year => year.is_active)?.name ?? schoolYears[0]?.name ?? '2026-2027';
+  const eleves: Student[] = isDatabaseConfigured
+    ? (await listStudentsForSchoolYear(activeSchoolYear)).data
+    : schoolService.getStudents();
 
   const totalAttendu = eleves.reduce((total, eleve) => total + eleve.fraisScolariteTotal, 0);
   const totalPaye = eleves.reduce((total, eleve) => total + eleve.fraisScolaritePayes, 0);

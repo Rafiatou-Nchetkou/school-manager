@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StudentGender {
+  M
+  F
+}
+
+enum EnrollmentStatus {
+  NEW
+  PROMOTED
+  REPEATING
+  TRANSFER_IN
+  EXAM_CANDIDATE
+  INCOMPLETE
+}
+
+enum TransferDirection {
+  INCOMING
+  OUTGOING
+}
+
+model Student {
+  id                  String       @id @default(cuid())
+  registrationNumber  String       @unique
+  firstName           String
+  lastName            String
+  gender              StudentGender?
+  birthDate           DateTime?    @db.Date
+  guardianName        String?
+  guardianPhone       String?
+  previousSchool      String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  enrollments         Enrollment[]
+  transfers           StudentTransfer[]
+
+  @@index([lastName, firstName])
+}
+
+model SchoolYear {
+  id             String             @id @default(cuid())
+  name           String             @unique
+  startsOn       DateTime?          @db.Date
+  endsOn         DateTime?          @db.Date
+  isActive       Boolean            @default(false)
+  classrooms     Classroom[]
+  enrollments    Enrollment[]
+  periods        EvaluationPeriod[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([isActive])
+}
+
+model GradeLevel {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  label       String
+  position    Int         @default(0)
+  isActive    Boolean     @default(true)
+  classrooms  Classroom[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([isActive, position])
+}
+
+model Classroom {
+  id             String       @id @default(cuid())
+  gradeLevelId   String
+  schoolYearId   String
+  headTeacherId  String?
+  gradeLevel     GradeLevel   @relation(fields: [gradeLevelId], references: [id], onDelete: Restrict)
+  schoolYear     SchoolYear   @relation(fields: [schoolYearId], references: [id], onDelete: Restrict)
+  enrollments    Enrollment[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([gradeLevelId, schoolYearId])
+  @@index([schoolYearId])
+}
+
+model Enrollment {
+  id             String           @id @default(cuid())
+  studentId      String
+  classroomId    String
+  schoolYearId   String
+  status         EnrollmentStatus @default(NEW)
+  enteredAt      DateTime         @default(now())
+  totalTuition   Decimal          @default(0) @db.Decimal(12, 2)
+  paidTuition    Decimal          @default(0) @db.Decimal(12, 2)
+  notes          String?
+  student        Student          @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  classroom      Classroom        @relation(fields: [classroomId], references: [id], onDelete: Restrict)
+  schoolYear     SchoolYear       @relation(fields: [schoolYearId], references: [id], onDelete: Restrict)
+  results        AssessmentResult[]
+  transfers      StudentTransfer[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([studentId, schoolYearId])
+  @@index([classroomId])
+  @@index([schoolYearId, status])
+}
+
+model StudentTransfer {
+  id                 String            @id @default(cuid())
+  studentId          String
+  enrollmentId       String?
+  direction          TransferDirection
+  occurredAt         DateTime          @db.Date
+  destination        String?
+  origin             String?
+  notes              String?
+  student            Student           @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  enrollment         Enrollment?       @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  createdAt          DateTime          @default(now())
+
+  @@index([studentId, occurredAt])
+}
+
+model EvaluationPeriod {
+  id             String             @id @default(cuid())
+  schoolYearId   String
+  name           String
+  startsOn       DateTime?          @db.Date
+  endsOn         DateTime?          @db.Date
+  schoolYear     SchoolYear         @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+  results        AssessmentResult[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@unique([schoolYearId, name])
+}
+
+model AssessmentResult {
+  id                 String           @id @default(cuid())
+  enrollmentId       String
+  evaluationPeriodId String
+  subject            String
+  score              Decimal?         @db.Decimal(6, 2)
+  result             String?
+  notes              String?
+  enrollment         Enrollment       @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  evaluationPeriod   EvaluationPeriod @relation(fields: [evaluationPeriodId], references: [id], onDelete: Cascade)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([enrollmentId, evaluationPeriodId, subject])
+  @@index([evaluationPeriodId])
+}

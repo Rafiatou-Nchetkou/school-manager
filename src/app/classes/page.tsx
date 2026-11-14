@@ -3,10 +3,17 @@ import { Users, UserX, Settings } from 'lucide-react';
 import { schoolService } from '@/services/schoolService';
 import { Button } from '@/components/ui/Button';
 import { AssignTeacherModal } from '@/components/classrooms/AssignTeacherModal';
+import { isDatabaseConfigured } from '@/lib/database';
+import { listSchoolYears } from '@/lib/studentLifecycle';
+import { listClassrooms, listTeachers } from '@/lib/schoolDirectory';
 
 export default async function ClassesPage() {
-  const classrooms = await schoolService.getClassrooms();
-  const { data: teachers } = await schoolService.getFilteredTeachers({ status: 'all' });
+  const schoolYears = isDatabaseConfigured ? await listSchoolYears() : await schoolService.getSchoolYears();
+  const schoolYear = schoolYears.find(year => year.is_active)?.name ?? schoolYears[0]?.name ?? '2026-2027';
+  const classrooms = isDatabaseConfigured ? await listClassrooms(schoolYear) : await schoolService.getClassrooms();
+  const { data: teachers } = isDatabaseConfigured
+    ? await listTeachers({ status: 'all' })
+    : await schoolService.getFilteredTeachers({ status: 'all' });
 
   return (
     <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-6">
@@ -15,7 +22,7 @@ export default async function ClassesPage() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Gestion des Classes</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Année scolaire 2026-2027 • Vue d&apos;ensemble des effectifs et des titulaires.
+            Année scolaire {schoolYear} • Vue d&apos;ensemble des effectifs et des titulaires.
           </p>
         </div>
         <Button variant="primary" className="gap-2">
