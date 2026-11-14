@@ -4,13 +4,18 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { auth } from '@/auth';
 import { logoutAction } from '@/app/auth-actions';
+import { connection } from 'next/server';
 
 export const metadata: Metadata = {
   title: 'École Publique de Bikondo - Gestion',
   description: 'Application de gestion scolaire',
 };
 
+// The root layout reads the request session and is allowed to block rendering.
+export const instant = false;
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  await connection();
   const session = await auth();
   return (
     <html lang="fr">
