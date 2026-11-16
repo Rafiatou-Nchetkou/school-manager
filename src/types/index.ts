@@ -56,6 +56,7 @@ export type Teacher = {
   nom: string;
   prenom: string;
   telephone: string;
+  email?: string;
   statut: 'Fonctionnaire' | 'Contractuel';
   matricule?: string;
 };

@@ -9,8 +9,8 @@ export function LoginForm() {
   return (
     <form action={action} className="space-y-5">
       <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">Adresse courriel</label>
-        <input id="email" name="email" type="email" autoComplete="username" required maxLength={254}
+        <label htmlFor="login" className="mb-1 block text-sm font-medium text-gray-700">Adresse e-mail ou identifiant</label>
+        <input id="login" name="login" type="text" autoComplete="username" required maxLength={254}
           className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-100" />
       </div>
       <div>

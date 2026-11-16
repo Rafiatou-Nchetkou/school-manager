@@ -19,7 +19,7 @@ export async function applySchoolMigrations() {
       )
     `);
 
-    const migrations = ['001_student_lifecycle', '002_teachers', '003_auth_users'];
+    const migrations = ['001_student_lifecycle', '002_teachers', '003_auth_users', '004_teacher_login_identifier'];
     const applied: string[] = [];
     for (const migrationId of migrations) {
       const existing = await client.query('SELECT id FROM schema_migrations WHERE id = $1', [migrationId]);

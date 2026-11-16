@@ -157,6 +157,7 @@ model Teacher {
   lastName           String      @map("last_name")
   firstName          String      @map("first_name")
   phone              String
+  email              String?
   status             String
   registrationNumber String?     @map("registration_number")
   classrooms         Classroom[]
@@ -169,7 +170,8 @@ model Teacher {
 
 model AppUser {
   id          String   @id
-  email       String   @unique
+  email       String?  @unique
+  loginIdentifier String @unique @map("login_identifier")
   displayName String   @map("display_name")
   passwordHash String  @map("password_hash")
   role        String

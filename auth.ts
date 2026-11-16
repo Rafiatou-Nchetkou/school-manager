@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { authenticateSchoolUser } from '@/lib/authUsers';
 
 const loginSchema = z.object({
-  email: z.string().trim().email().max(254),
+  login: z.string().trim().min(1).max(254),
   password: z.string().min(1).max(256),
 });
 
@@ -14,13 +14,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: 'Adresse courriel', type: 'email' },
+        login: { label: 'E-mail ou identifiant', type: 'text' },
         password: { label: 'Mot de passe', type: 'password' },
       },
       async authorize(credentials) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
-        return authenticateSchoolUser(parsed.data.email, parsed.data.password);
+        return authenticateSchoolUser(parsed.data.login.toLowerCase(), parsed.data.password);
       },
     }),
   ],

@@ -21,7 +21,7 @@ async function main() {
     await connectedClient.query('SELECT pg_advisory_lock($1)', [541_802_202]);
     lockAcquired = true;
     await connectedClient.query(`CREATE TABLE IF NOT EXISTS schema_migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`);
-    const migrations = ['001_student_lifecycle', '002_teachers', '003_auth_users'];
+    const migrations = ['001_student_lifecycle', '002_teachers', '003_auth_users', '004_teacher_login_identifier'];
 
     for (const migrationId of migrations) {
       const current = await connectedClient.query('SELECT id FROM schema_migrations WHERE id = $1', [migrationId]);

@@ -3,6 +3,7 @@ export type Teacher = {
   lastName: string;
   firstName: string;
   phone: string;
+  email?: string;
   status: 'Fonctionnaire' | 'Contractuel';
   registrationNumber?: string;
 };

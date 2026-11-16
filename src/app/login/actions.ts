@@ -6,14 +6,14 @@ import { signIn } from '@/auth';
 export type LoginState = { error?: string } | undefined;
 
 export async function loginAction(_state: LoginState, formData: FormData): Promise<LoginState> {
-  const email = formData.get('email');
+  const login = formData.get('login');
   const password = formData.get('password');
-  if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
-    return { error: 'Saisissez votre adresse courriel et votre mot de passe.' };
+  if (typeof login !== 'string' || typeof password !== 'string' || !login.trim() || !password) {
+    return { error: 'Saisissez votre e-mail ou votre identifiant et votre mot de passe.' };
   }
 
   try {
-    await signIn('credentials', { email: email.trim(), password, redirectTo: '/' });
+    await signIn('credentials', { login: login.trim(), password, redirectTo: '/' });
   } catch (error) {
     if (error instanceof AuthError) return { error: 'Identifiants invalides ou compte désactivé.' };
     throw error;

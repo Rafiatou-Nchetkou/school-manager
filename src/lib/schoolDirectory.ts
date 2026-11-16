@@ -1,6 +1,7 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { getDatabasePool } from '@/lib/database';
+import { hashPassword } from '@/lib/passwords';
 import type { Classroom, Teacher } from '@/types';
 
 export async function listTeachers(input: { search?: string; status?: string } = {}) {
@@ -28,12 +29,40 @@ export async function listTeachers(input: { search?: string; status?: string } =
 
 export async function createTeacher(input: Omit<Teacher, 'id'>) {
   const result = await getDatabasePool().query(
-    `INSERT INTO teachers (id, last_name, first_name, phone, status, registration_number)
-     VALUES ($1, $2, $3, $4, $5, NULLIF($6, ''))
-     RETURNING id, last_name AS nom, first_name AS prenom, phone AS telephone, status AS statut, registration_number AS matricule`,
-    [randomUUID(), input.nom.trim(), input.prenom.trim(), input.telephone.trim(), input.statut, input.matricule?.trim() ?? ''],
+    `INSERT INTO teachers (id, last_name, first_name, phone, email, status, registration_number)
+     VALUES ($1, $2, $3, $4, NULLIF($5, ''), $6, NULLIF($7, ''))
+     RETURNING id, last_name AS nom, first_name AS prenom, phone AS telephone, email, status AS statut, registration_number AS matricule`,
+    [randomUUID(), input.nom.trim(), input.prenom.trim(), input.telephone.trim(), input.email?.trim().toLowerCase() ?? '', input.statut, input.matricule?.trim() ?? ''],
   );
   return result.rows[0] as Teacher;
+}
+
+export async function createTeacherWithAccount(input: Omit<Teacher, 'id'> & { password: string }) {
+  const passwordHash = await hashPassword(input.password);
+  const client = await getDatabasePool().connect();
+  const id = randomUUID();
+  const loginIdentifier = input.email?.trim().toLowerCase() || `ens-${randomUUID().slice(0, 12)}`;
+  try {
+    await client.query('BEGIN');
+    const teacher = await client.query(
+      `INSERT INTO teachers (id, last_name, first_name, phone, email, status, registration_number)
+       VALUES ($1, $2, $3, $4, NULLIF($5, ''), $6, NULLIF($7, ''))
+       RETURNING id, last_name AS nom, first_name AS prenom, phone AS telephone, email, status AS statut, registration_number AS matricule`,
+      [id, input.nom.trim(), input.prenom.trim(), input.telephone.trim(), input.email?.trim().toLowerCase() ?? '', input.statut, input.matricule?.trim() ?? ''],
+    );
+    await client.query(
+      `INSERT INTO app_users (id, email, login_identifier, display_name, password_hash, role, teacher_id)
+       VALUES ($1, $2, $3, $4, $5, 'teacher', $6)`,
+      [randomUUID(), input.email?.trim().toLowerCase() || null, loginIdentifier, `${input.prenom.trim()} ${input.nom.trim()}`, passwordHash, id],
+    );
+    await client.query('COMMIT');
+    return { teacher: teacher.rows[0] as Teacher, loginIdentifier };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function listClassrooms(schoolYear: string, teacherId?: string) {
