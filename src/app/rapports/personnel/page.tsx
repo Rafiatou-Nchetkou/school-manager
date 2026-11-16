@@ -6,7 +6,7 @@ export default function RapportPersonnelPage() {
       <div className="mb-6 print:hidden">
         <h1 className="text-2xl font-bold text-gray-900">État de mise en place du personnel</h1>
         <p className="text-gray-500 mt-1">
-          Générez le document officiel à présenter à l'inspection. Cliquez sur le bouton pour l'imprimer ou le sauvegarder en PDF.
+          Générez le document officiel à présenter à l&apos;inspection. Cliquez sur le bouton pour l&apos;imprimer ou le sauvegarder en PDF.
         </p>
       </div>
 
