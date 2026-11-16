@@ -1,0 +1,185 @@
+// Reference mapping for database/migrations/*.sql.
+// The application currently executes SQL through `pg`; SQL migrations remain
+// the source of truth. Keep table/column names and text status values aligned.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id                 String            @id
+  registrationNumber String            @unique @map("registration_number")
+  firstName          String?           @map("first_name")
+  lastName           String?           @map("last_name")
+  gender             String?
+  birthDate          DateTime?         @map("birth_date") @db.Date
+  guardianName       String?           @map("guardian_name")
+  guardianPhone      String?           @map("guardian_phone")
+  previousSchool     String?           @map("previous_school")
+  isIncomplete       Boolean           @default(false) @map("is_incomplete")
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime          @default(now()) @map("updated_at") @db.Timestamptz
+  enrollments        Enrollment[]
+  transfers          StudentTransfer[]
+
+  @@index([lastName, firstName], map: "students_name_idx")
+  @@map("students")
+}
+
+model SchoolYear {
+  id          String             @id
+  name        String             @unique
+  startsOn    DateTime?          @map("starts_on") @db.Date
+  endsOn      DateTime?          @map("ends_on") @db.Date
+  isActive    Boolean            @default(false) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime           @default(now()) @map("updated_at") @db.Timestamptz
+  classrooms  Classroom[]
+  enrollments Enrollment[]
+  periods     EvaluationPeriod[]
+
+  @@index([isActive], map: "school_years_is_active_idx")
+  @@map("school_years")
+}
+
+model GradeLevel {
+  id         String      @id
+  name       String      @unique
+  label      String
+  position   Int         @default(0)
+  isActive   Boolean     @default(true) @map("is_active")
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime    @default(now()) @map("updated_at") @db.Timestamptz
+  classrooms Classroom[]
+
+  @@index([isActive, position], map: "grade_levels_is_active_position_idx")
+  @@map("grade_levels")
+}
+
+model Classroom {
+  id            String       @id
+  gradeLevelId  String       @map("grade_level_id")
+  schoolYearId  String       @map("school_year_id")
+  headTeacherId String?      @map("head_teacher_id")
+  gradeLevel    GradeLevel   @relation(fields: [gradeLevelId], references: [id], onDelete: Restrict)
+  schoolYear    SchoolYear   @relation(fields: [schoolYearId], references: [id], onDelete: Restrict)
+  headTeacher   Teacher?     @relation(fields: [headTeacherId], references: [id], onDelete: SetNull)
+  enrollments   Enrollment[]
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime     @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@unique([gradeLevelId, schoolYearId])
+  @@index([schoolYearId], map: "classrooms_school_year_id_idx")
+  @@map("classrooms")
+}
+
+model Enrollment {
+  id                String             @id
+  studentId         String             @map("student_id")
+  classroomId       String             @map("classroom_id")
+  schoolYearId      String             @map("school_year_id")
+  registrationNumber String            @unique @map("registration_number")
+  status            String
+  enteredAt         DateTime           @default(dbgenerated("CURRENT_DATE")) @map("entered_at") @db.Date
+  totalTuition      Decimal            @default(0) @map("total_tuition") @db.Decimal(12, 2)
+  paidTuition       Decimal            @default(0) @map("paid_tuition") @db.Decimal(12, 2)
+  notes             String?
+  student           Student            @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  classroom         Classroom          @relation(fields: [classroomId], references: [id], onDelete: Restrict)
+  schoolYear        SchoolYear         @relation(fields: [schoolYearId], references: [id], onDelete: Restrict)
+  results           AssessmentResult[]
+  transfers         StudentTransfer[]
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime           @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@unique([studentId, schoolYearId])
+  @@index([schoolYearId, classroomId], map: "enrollments_year_class_idx")
+  @@index([schoolYearId, status], map: "enrollments_status_idx")
+  @@map("enrollments")
+}
+
+model StudentTransfer {
+  id          String      @id
+  studentId   String      @map("student_id")
+  enrollmentId String?    @map("enrollment_id")
+  direction   String
+  occurredAt  DateTime    @map("occurred_at") @db.Date
+  origin      String?
+  destination String?
+  notes       String?
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  enrollment  Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([studentId, occurredAt], map: "student_transfers_student_date_idx")
+  @@map("student_transfers")
+}
+
+model EvaluationPeriod {
+  id          String             @id
+  schoolYearId String            @map("school_year_id")
+  name        String
+  startsOn    DateTime?          @map("starts_on") @db.Date
+  endsOn      DateTime?          @map("ends_on") @db.Date
+  schoolYear  SchoolYear         @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+  results     AssessmentResult[]
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime           @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@unique([schoolYearId, name])
+  @@map("evaluation_periods")
+}
+
+model AssessmentResult {
+  id                 String           @id
+  enrollmentId       String           @map("enrollment_id")
+  evaluationPeriodId String           @map("evaluation_period_id")
+  subject            String
+  score              Decimal?         @db.Decimal(6, 2)
+  result             String?
+  notes              String?
+  enrollment         Enrollment       @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  evaluationPeriod   EvaluationPeriod @relation(fields: [evaluationPeriodId], references: [id], onDelete: Cascade)
+  createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime         @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@unique([enrollmentId, evaluationPeriodId, subject])
+  @@index([evaluationPeriodId], map: "assessment_results_evaluation_period_id_idx")
+  @@map("assessment_results")
+}
+
+model Teacher {
+  id                 String      @id
+  lastName           String      @map("last_name")
+  firstName          String      @map("first_name")
+  phone              String
+  email              String?
+  status             String
+  registrationNumber String?     @map("registration_number")
+  classrooms         Classroom[]
+  appUsers           AppUser[]
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime    @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("teachers")
+}
+
+model AppUser {
+  id          String   @id
+  email       String?  @unique
+  loginIdentifier String @unique @map("login_identifier")
+  displayName String   @map("display_name")
+  passwordHash String  @map("password_hash")
+  role        String
+  teacherId   String?  @map("teacher_id")
+  isActive    Boolean  @default(true) @map("is_active")
+  teacher     Teacher? @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("app_users")
+}

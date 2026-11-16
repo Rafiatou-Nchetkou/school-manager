@@ -1,11 +1,12 @@
-export type GradeLevel = 'SIL' | 'CP' | 'CE1' | 'CE2' | 'CM1' | 'CM2';
+export type GradeLevel = string;
 
 export type StudentStatus = 
   | 'Nouveau' 
   | 'Passant' 
   | 'Redoublant' 
   | 'Transféré' 
-  | 'Candidat Examen';
+  | 'Candidat Examen'
+  | 'Incomplet';
 
 export type ExamResult = 'En attente' | 'Admis' | 'Ajourné' | 'Absent';
 
@@ -14,7 +15,7 @@ export type Student = {
   matricule: string;
   nom: string;
   prenom: string;
-  sexe: 'M' | 'F';
+  sexe: 'M' | 'F' | null;
   dateNaissance: string;
   tuteurNom: string;
   tuteurTelephone: string;
@@ -28,6 +29,7 @@ export type Student = {
   resultatCEP?: ExamResult;
   resultatConcours6e?: ExamResult;
   fraisExamenPayes?: boolean;
+  isIncomplete?: boolean;
 };
 
 export type StaffRecord = {
@@ -54,6 +56,7 @@ export type Teacher = {
   nom: string;
   prenom: string;
   telephone: string;
+  email?: string;
   statut: 'Fonctionnaire' | 'Contractuel';
   matricule?: string;
 };

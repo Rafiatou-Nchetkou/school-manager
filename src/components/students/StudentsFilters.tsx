@@ -7,12 +7,21 @@ import { GradeLevel } from '@/types';
 
 const CLASSES: (GradeLevel | 'Toutes')[] = ['Toutes', 'SIL', 'CP', 'CE1', 'CE2', 'CM1', 'CM2'];
 
-export function StudentFilters() {
+export function StudentFilters({
+  schoolYears,
+  selectedSchoolYear,
+  incompleteOnly,
+}: {
+  schoolYears: string[];
+  selectedSchoolYear: string;
+  incompleteOnly: boolean;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   
   // États locaux pour les inputs (pour éviter de spammer le serveur à chaque touche)
   const [search, setSearch] = useState(searchParams.get('search') || '');
+  const schoolYear = searchParams.get('schoolYear') || selectedSchoolYear;
   const gradeLevel = searchParams.get('gradeLevel') || 'all';
   const status = searchParams.get('status') || 'all';
 
@@ -66,6 +75,28 @@ export function StudentFilters() {
         </nav>
       </div>
 
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <span>Année scolaire</span>
+          <select
+            value={schoolYear}
+            onChange={(event) => updateUrl({ schoolYear: event.target.value })}
+            className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm"
+          >
+            {schoolYears.map((year) => <option key={year} value={year}>{year}</option>)}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={incompleteOnly}
+            onChange={(event) => updateUrl({ incomplete: event.target.checked ? 'true' : '' })}
+            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          />
+          Dossiers incomplets uniquement
+        </label>
+      </div>
+
       {/* Recherche et Statut */}
       <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
         <div className="relative w-full md:max-w-md">
@@ -91,6 +122,7 @@ export function StudentFilters() {
             <option value="Redoublant">Redoublants</option>
             <option value="Transféré">Transférés</option>
             <option value="Candidat Examen">Candidats Examens</option>
+            <option value="Incomplet">Dossiers incomplets</option>
           </select>
           <Filter className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
         </div>

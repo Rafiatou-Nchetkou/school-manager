@@ -3,24 +3,33 @@ import { Users, UserX, Settings } from 'lucide-react';
 import { schoolService } from '@/services/schoolService';
 import { Button } from '@/components/ui/Button';
 import { AssignTeacherModal } from '@/components/classrooms/AssignTeacherModal';
+import { isDatabaseConfigured } from '@/lib/database';
+import { listSchoolYears } from '@/lib/studentLifecycle';
+import { listClassrooms, listTeachers } from '@/lib/schoolDirectory';
+import { auth } from '@/auth';
 
 export default async function ClassesPage() {
-  const classrooms = await schoolService.getClassrooms();
-  const { data: teachers } = await schoolService.getFilteredTeachers({ status: 'all' });
+  const session = await auth();
+  const isDirector = session?.user.role === 'director';
+  const teacherId = session?.user.role === 'teacher' ? session.user.teacherId ?? undefined : undefined;
+  const schoolYears = isDatabaseConfigured ? await listSchoolYears() : await schoolService.getSchoolYears();
+  const schoolYear = schoolYears.find(year => year.is_active)?.name ?? schoolYears[0]?.name ?? '2026-2027';
+  const classrooms = isDatabaseConfigured ? await listClassrooms(schoolYear, teacherId) : await schoolService.getClassrooms();
+  const { data: teachers } = isDirector && isDatabaseConfigured
+    ? await listTeachers({ status: 'all' })
+    : isDirector ? await schoolService.getFilteredTeachers({ status: 'all' }) : { data: [] };
 
   return (
     <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-6">
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Gestion des Classes</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">{isDirector ? 'Gestion des Classes' : 'Ma classe'}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Année scolaire 2026-2027 • Vue d&apos;ensemble des effectifs et des titulaires.
+            Année scolaire {schoolYear} • Vue d&apos;ensemble des effectifs et des titulaires.
           </p>
         </div>
-        <Button variant="primary" className="gap-2">
-          <Settings size={16} /> Configurer les classes
-        </Button>
+        {isDirector && <Button variant="primary" className="gap-2"><Settings size={16} /> Configurer les classes</Button>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -45,12 +54,12 @@ export default async function ClassesPage() {
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Enseignant Titulaire</p>
                   {/* La modale est placée ici */}
-                  <AssignTeacherModal 
+                  {isDirector && <AssignTeacherModal
                     classId={classroom.id}
                     classroomName={classroom.nom}
                     currentTeacherId={classroom.enseignantTitulaireId}
                     teachers={teachers}
-                  />
+                  />}
                 </div>
                 
                 {hasTeacher ? (
@@ -62,7 +71,7 @@ export default async function ClassesPage() {
                       <p className="font-semibold text-gray-900 text-sm">
                         {classroom.teacher!.nom} {classroom.teacher!.prenom}
                       </p>
-                      <p className="text-xs text-gray-500">{classroom.teacher!.telephone}</p>
+                      {isDirector && <p className="text-xs text-gray-500">{classroom.teacher!.telephone}</p>}
                     </div>
                   </div>
                 ) : (
@@ -75,9 +84,7 @@ export default async function ClassesPage() {
 
               <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex justify-between items-center text-sm">
                 <span className="text-gray-500">{classroom.studentCount} élèves inscrits</span>
-                <Link href={`/eleves?gradeLevel=${classroom.nom}`} className="text-blue-600 font-medium hover:underline">
-                  Voir les élèves
-                </Link>
+                {isDirector && <Link href={`/eleves?gradeLevel=${classroom.nom}`} className="text-blue-600 font-medium hover:underline">Voir les élèves</Link>}
               </div>
             </div>
           );

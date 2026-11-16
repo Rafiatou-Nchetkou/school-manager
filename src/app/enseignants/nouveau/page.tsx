@@ -1,22 +1,23 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save, User } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { schoolService } from '@/services/schoolService';
+import { createTeacherAction, type CreateTeacherState } from '@/app/enseignants/actions';
 import { useState } from 'react';
 
 export default function NouvelEnseignantPage() {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [result, setResult] = useState<CreateTeacherState>();
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
     telephone: '',
+    email: '',
     statut: 'Fonctionnaire' as 'Fonctionnaire' | 'Contractuel',
     matricule: '',
+    password: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -28,11 +29,13 @@ export default function NouvelEnseignantPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await schoolService.addTeacher(formData);
-      router.push('/enseignants');
-      router.refresh(); // Force le rechargement des données serveur
+      const response = await createTeacherAction(formData);
+      setResult(response);
+      if (response?.success) setFormData(previous => ({ ...previous, password: '' }));
     } catch (error) {
       console.error(error);
+      setResult({ error: 'La création a échoué. Vérifiez la base de données et réessayez.' });
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -82,6 +85,25 @@ export default function NouvelEnseignantPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Matricule (Optionnel)</label>
             <input type="text" name="matricule" value={formData.matricule} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:outline-none" placeholder="Ex: 253136" />
           </div>
+
+          <div className="border-t border-gray-100 pt-5">
+            <h2 className="text-lg font-semibold text-gray-900">Accès à l’application</h2>
+            <p className="mt-1 text-sm text-gray-500">L’e-mail est facultatif. Sans e-mail, un identifiant de connexion unique sera généré.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Adresse e-mail (facultative)</label>
+            <input type="email" name="email" value={formData.email} onChange={handleChange} maxLength={254} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:outline-none" placeholder="enseignant@ecole.cm" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe initial (12 caractères minimum)</label>
+            <input required type="password" name="password" value={formData.password} onChange={handleChange} minLength={12} maxLength={256} autoComplete="new-password" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:outline-none" />
+          </div>
+          {result?.error && <p role="alert" className="text-sm text-red-700">{result.error}</p>}
+          {result?.success && <div role="status" className="rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800">
+            <p>{result.success}</p>
+            <p className="mt-1">Identifiant de connexion : <strong>{result.loginIdentifier}</strong></p>
+            <p>Communiquez cet identifiant et le mot de passe à l’enseignant de façon sécurisée.</p>
+          </div>}
 
           <div className="flex justify-end pt-4 border-t border-gray-100">
             <Button type="submit" variant="primary" className="w-full md:w-auto px-8 py-3" disabled={isSubmitting}>

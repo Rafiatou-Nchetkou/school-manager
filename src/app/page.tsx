@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { Users, Wallet, GraduationCap, UserPlus, ChevronDown } from 'lucide-react';
 import { schoolService } from '@/services/schoolService';
@@ -7,10 +5,15 @@ import { Student } from '@/types';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { isDatabaseConfigured } from '@/lib/database';
+import { listSchoolYears, listStudentsForSchoolYear } from '@/lib/studentLifecycle';
 
-export default function Dashboard() {
-  const students: Student[] = schoolService.getStudents();
-  const annee = '2026-2027';
+export default async function Dashboard() {
+  const schoolYears = isDatabaseConfigured ? await listSchoolYears() : await schoolService.getSchoolYears();
+  const annee = schoolYears.find(year => year.is_active)?.name ?? schoolYears[0]?.name ?? '2026-2027';
+  const students: Student[] = isDatabaseConfigured
+    ? (await listStudentsForSchoolYear(annee)).data
+    : schoolService.getStudents();
 
   // Calculs des statistiques
   const elevesAnnee = students.filter(e => e.anneeScolaire === annee);
@@ -45,10 +48,10 @@ export default function Dashboard() {
         </div>
         
         {/* Sélecteur d'année scolaire */}
-        <button className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 w-fit">
+        <Link href={`/eleves?schoolYear=${encodeURIComponent(annee)}`} className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 w-fit">
           Année scolaire : <span className="font-bold text-primary-600">{annee}</span>
           <ChevronDown size={16} className="text-gray-400 ml-2" />
-        </button>
+        </Link>
       </header>
 
       {/* Cartes KPI */}

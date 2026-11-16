@@ -4,13 +4,18 @@ import { Home, Users, Wallet, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export function BottomNav() {
+export function BottomNav({ role }: { role: 'director' | 'teacher' }) {
   const pathname = usePathname();
   const isActive = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50">
       <div className="flex justify-around items-center p-3">
+        {role === 'teacher' ? (
+          <Link href="/classes" aria-current={isActive('/classes') ? 'page' : undefined} className={`flex flex-col items-center gap-1 ${isActive('/classes') ? 'text-primary-600' : 'text-gray-500 hover:text-gray-900'}`}>
+            <BookOpen size={24} /> <span className="text-[10px] font-medium">Ma classe</span>
+          </Link>
+        ) : <>
         <Link href="/" aria-current={isActive('/') ? 'page' : undefined} className={`flex flex-col items-center gap-1 ${isActive('/') ? 'text-primary-600' : 'text-gray-500 hover:text-gray-900'}`}>
           <Home size={24} /> <span className="text-[10px] font-medium">Accueil</span>
         </Link>
@@ -26,6 +31,7 @@ export function BottomNav() {
         <Link href="/enseignants" aria-current={isActive('/enseignants') ? 'page' : undefined} className={`flex flex-col items-center gap-1 ${isActive('/enseignants') ? 'text-primary-600' : 'text-gray-500 hover:text-gray-900'}`}>
           <Users size={24} /> <span className="text-[10px] font-medium">Enseignants</span>
         </Link>
+        </>}
       </div>
     </nav>
   );

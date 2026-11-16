@@ -5,6 +5,8 @@ import { schoolService } from '@/services/schoolService';
 import { Button } from '@/components/ui/Button';
 import { TeacherFilters } from '@/components/teachers/TeacherFilters';
 import { TeacherTable } from '@/components/teachers/TeacherTable';
+import { isDatabaseConfigured } from '@/lib/database';
+import { listTeachers } from '@/lib/schoolDirectory';
 
 type TeacherListPageProps = {
   searchParams: Promise<{ search?: string; status?: string }>;
@@ -20,10 +22,13 @@ export default function TeacherListPage({ searchParams }: TeacherListPageProps) 
 
 async function TeacherListContent({ searchParams }: TeacherListPageProps) {
   const params = await searchParams;
-  const { data, total } = await schoolService.getFilteredTeachers({
+  const filters = {
     search: params.search || '',
     status: params.status || 'all',
-  });
+  };
+  const { data, total } = isDatabaseConfigured
+    ? await listTeachers(filters)
+    : await schoolService.getFilteredTeachers(filters);
 
   return (
     <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-6">

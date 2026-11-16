@@ -3,12 +3,12 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Student, StudentStatus } from '@/types';
 
-export function StudentTable({ 
+export function StudentTable({
   students, 
   total, 
   totalPages, 
   currentPage,
-  searchParams
+  searchParams,
 }: { 
   students: Student[]; 
   total: number; 
@@ -67,11 +67,12 @@ export function StudentTable({
                       <div className="flex flex-col">
                         <span className="font-medium text-gray-900">{eleve.nom} {eleve.prenom}</span>
                         <span className="text-xs text-gray-500 font-mono mt-0.5">{eleve.matricule}</span>
+                        {eleve.isIncomplete && <span className="mt-1 w-fit rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Dossier incomplet</span>}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-700">{eleve.classe}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={getStatutVariant(eleve.statut)}>{eleve.statut}</Badge>
+                      <Badge variant={eleve.isIncomplete ? 'warning' : getStatutVariant(eleve.statut)}>{eleve.isIncomplete ? 'Incomplet' : eleve.statut}</Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {estAJour ? (
@@ -89,7 +90,7 @@ export function StudentTable({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button className="text-gray-400 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                      <button type="button" aria-label={`Actions pour ${eleve.prenom} ${eleve.nom}`} className="text-gray-400 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                         <MoreHorizontal size={18} />
                       </button>
                     </td>
