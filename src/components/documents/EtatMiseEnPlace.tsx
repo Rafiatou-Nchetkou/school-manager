@@ -56,8 +56,8 @@ export function StaffReport({ personnel = MOCK_TEACHERS }: { personnel?: StaffRe
               <th className="border border-black p-1">Fonction</th>
               <th className="border border-black p-1">Classe Tenue</th>
               <th className="border border-black p-1">N° Prise de Service</th>
-              <th className="border border-black p-1">Date d'entrée</th>
-              <th className="border border-black p-1">Fonction d'origine</th>
+              <th className="border border-black p-1">Date d&apos;entrée</th>
+              <th className="border border-black p-1">Fonction d&apos;origine</th>
               <th className="border border-black p-1">Avancement</th>
               <th className="border border-black p-1">Contact</th>
             </tr>

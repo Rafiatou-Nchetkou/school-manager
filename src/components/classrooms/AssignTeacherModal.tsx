@@ -55,7 +55,7 @@ export function AssignTeacherModal({
 
             <div className="p-5 space-y-4">
               <p className="text-sm text-gray-500">
-                Sélectionnez l'enseignant qui sera responsable de cette classe pour l'année en cours.
+                Sélectionnez l&apos;enseignant qui sera responsable de cette classe pour l&apos;année en cours.
               </p>
               
               <div>
